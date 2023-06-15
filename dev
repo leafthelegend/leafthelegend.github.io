@@ -1,0 +1,12 @@
+Adding directories to PATH:
+PATH += /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk
+PATH += /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/upstream/emscripten
+PATH += /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/node/14.18.2_64bit/bin
+
+Setting environment variables:
+PATH = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk:/Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/upstream/emscripten:/Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/node/14.18.2_64bit/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/opt/X11/bin:/Library/Apple/usr/bin
+EMSDK = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk
+EM_CONFIG = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/.emscripten
+EMSDK_NODE = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/node/14.18.2_64bit/bin/node
+EMSDK_PYTHON = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/python/3.9.2_64bit/bin/python3
+SSL_CERT_FILE = /Users/lieflundmark-aitcheson/Desktop/Dev/Wasm/emsdk/python/3.9.2_64bit/lib/python3.9/site-packages/certifi/cacert.pem
