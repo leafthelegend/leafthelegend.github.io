@@ -1,0 +1,25 @@
+{
+  "name": "leafthelegend.github.io",
+  "version": "1.0.0",
+  "description": "my website",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel src/index.html",
+    "predeploy": "rm -rf dist && parcel build src/index.html --public-url 'https://github.com/leafthelegend/leafthelegend.github.io'",
+    "deploy": "gh-pages -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leafthelegend/leafthelegend.github.io.git"
+  },
+  "author": "Lief Lundmark",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/leafthelegend/leafthelegend.github.io/issues"
+  },
+  "homepage": "https://github.com/leafthelegend/leafthelegend.github.io#readme",
+  "dependencies": {
+    "gh-pages": "^5.0.0",
+    "parcel": "^2.9.2"
+  }
+}
