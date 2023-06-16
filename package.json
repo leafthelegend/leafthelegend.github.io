@@ -1,11 +1,13 @@
 {
   "name": "leafthelegend.github.io",
   "version": "1.0.0",
+  "source": "src/index.html",
   "description": "my website",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "parcel src/index.html",
-    "predeploy": "rm -rf dist && parcel build src/index.html --public-url 'https://github.com/leafthelegend/leafthelegend.github.io'",
+    "start": "parcel",
+    "build": "parcel build",
+    "predeploy": "rm -rf dist && parcel build src/index.html --public-url 'https://cdn.jsdelivr.net/gh/leafthelegend/leafthelegend.github.io@gh-pages'",
     "deploy": "gh-pages -d dist"
   },
   "repository": {
@@ -20,6 +22,11 @@
   "homepage": "https://github.com/leafthelegend/leafthelegend.github.io#readme",
   "dependencies": {
     "gh-pages": "^5.0.0",
+    "gpu.js": "^2.16.0",
+    "math.js": "^1.1.46",
     "parcel": "^2.9.2"
+  },
+  "targets": {
+    "main": false
   }
 }
