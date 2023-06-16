@@ -17514,97 +17514,100 @@ highp float nrand(highp vec2 n) {
 
 
 "use strict";
-const $f9d83769637380d8$var$gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
-//set canvas width and height to document
-const $f9d83769637380d8$var$canvas = document.getElementById("canvas");
-const $f9d83769637380d8$var$ctx = $f9d83769637380d8$var$canvas.getContext("2d");
-$f9d83769637380d8$var$canvas.width = document.body.clientWidth;
-$f9d83769637380d8$var$canvas.height = document.body.clientHeight;
-var $f9d83769637380d8$var$width = $f9d83769637380d8$var$canvas.width;
-var $f9d83769637380d8$var$height = $f9d83769637380d8$var$canvas.height;
-const $f9d83769637380d8$var$initial = $f9d83769637380d8$var$gpu.createKernel(function() {
-    var redval = Math.trunc(Math.random() * 2);
-    var blueval = Math.trunc(Math.random() * 2);
-    var greenval = Math.trunc(Math.random() * 2);
-    this.color(redval, greenval, blueval);
-}, {
-    useLegacyEncoder: true,
-    output: [
-        $f9d83769637380d8$var$width,
-        $f9d83769637380d8$var$height
-    ],
-    graphical: true
-});
-function $f9d83769637380d8$var$rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum) {
-    const RANGE = 3;
-    var redavg = redsum / (2 * RANGE + 1) ** 2;
-    var blueavg = bluesum / (2 * RANGE + 1) ** 2;
-    var greenavg = greensum / (2 * RANGE + 1) ** 2;
-    var redval = 0;
-    var blueval = 0;
-    var greenval = 0;
-    if (redavg > 0.42857141799999 && blueavg < 0.5) redval = 1;
-    else redval = 0;
-    if (blueavg > 0.42857141799999 && greenavg < 0.5) blueval = 1;
-    else blueval = 0;
-    if (greenavg > 0.42857141799999 && redavg < 0.5) greenval = 1;
-    else greenval = 0;
-    return [
-        redval,
-        greenval,
-        blueval
-    ];
-}
-$f9d83769637380d8$var$gpu.addFunction($f9d83769637380d8$var$rule, {
-    argumentTypes: {
-        redstatus: "Number",
-        bluestatus: "Number",
-        greenstatus: "Number",
-        redsum: "Number",
-        greensum: "Number",
-        bluesum: "Number"
-    },
-    returnType: "Array(3)"
-});
-const $f9d83769637380d8$var$render = $f9d83769637380d8$var$gpu.createKernel(function(pixels, width, height) {
-    const RANGE = 3;
-    let x = this.thread.x;
-    let y = height - 1 - this.thread.y;
-    let index = (x + y * width) * 4;
-    //count live neighbors
-    let redsum = 0;
-    let bluesum = 0;
-    let greensum = 0;
-    for(var j = -RANGE; j <= RANGE; j++)for(var i = -RANGE; i <= RANGE; i++){
-        var h = (x + i + width) % width;
-        var k = (y + j + height) % height;
-        redsum += pixels[h * 4 + k * 4 * width] / 255;
-        bluesum += pixels[h * 4 + k * 4 * width + 2] / 255;
-        greensum += pixels[h * 4 + k * 4 * width + 1] / 255;
+function $f9d83769637380d8$var$main() {
+    const gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
+    //set canvas width and height to document
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = document.body.clientWidth;
+    canvas.height = document.body.clientHeight;
+    var width = canvas.width;
+    var height = canvas.height;
+    const initial = gpu.createKernel(function() {
+        var redval = Math.trunc(Math.random() * 2);
+        var blueval = Math.trunc(Math.random() * 2);
+        var greenval = Math.trunc(Math.random() * 2);
+        this.color(redval, greenval, blueval);
+    }, {
+        useLegacyEncoder: true,
+        output: [
+            width,
+            height
+        ],
+        graphical: true
+    });
+    function rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum) {
+        const RANGE = 3;
+        var redavg = redsum / (2 * RANGE + 1) ** 2;
+        var blueavg = bluesum / (2 * RANGE + 1) ** 2;
+        var greenavg = greensum / (2 * RANGE + 1) ** 2;
+        var redval = 0;
+        var blueval = 0;
+        var greenval = 0;
+        if (redavg > 0.42857141799999 && blueavg < 0.5) redval = 1;
+        else redval = 0;
+        if (blueavg > 0.42857141799999 && greenavg < 0.5) blueval = 1;
+        else blueval = 0;
+        if (greenavg > 0.42857141799999 && redavg < 0.5) greenval = 1;
+        else greenval = 0;
+        return [
+            redval,
+            greenval,
+            blueval
+        ];
     }
-    var redstatus = pixels[index] / 255;
-    var bluestatus = pixels[index + 2] / 255;
-    var greenstatus = pixels[index + 1] / 255;
-    var [redval, greenval, blueval] = $f9d83769637380d8$var$rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum);
-    this.color(redval, greenval, blueval);
-}, {
-    useLegacyEncoder: true,
-    output: [
-        $f9d83769637380d8$var$width,
-        $f9d83769637380d8$var$height
-    ],
-    graphical: true
-});
-$f9d83769637380d8$var$initial();
-var $f9d83769637380d8$var$initPixels = $f9d83769637380d8$var$initial.getPixels();
-$f9d83769637380d8$var$render($f9d83769637380d8$var$initPixels, $f9d83769637380d8$var$width, $f9d83769637380d8$var$height);
-$f9d83769637380d8$var$ctx.drawImage($f9d83769637380d8$var$render.canvas, 0, 0);
-function $f9d83769637380d8$var$animate() {
-    $f9d83769637380d8$var$render($f9d83769637380d8$var$render.getPixels(), $f9d83769637380d8$var$width, $f9d83769637380d8$var$height);
-    $f9d83769637380d8$var$ctx.drawImage($f9d83769637380d8$var$render.canvas, 0, 0);
-    requestAnimationFrame($f9d83769637380d8$var$animate);
+    gpu.addFunction(rule, {
+        argumentTypes: {
+            redstatus: "Number",
+            bluestatus: "Number",
+            greenstatus: "Number",
+            redsum: "Number",
+            greensum: "Number",
+            bluesum: "Number"
+        },
+        returnType: "Array(3)"
+    });
+    const render = gpu.createKernel(function(pixels, width, height) {
+        const RANGE = 3;
+        let x = this.thread.x;
+        let y = height - 1 - this.thread.y;
+        let index = (x + y * width) * 4;
+        //count live neighbors
+        let redsum = 0;
+        let bluesum = 0;
+        let greensum = 0;
+        for(var j = -RANGE; j <= RANGE; j++)for(var i = -RANGE; i <= RANGE; i++){
+            var h = (x + i + width) % width;
+            var k = (y + j + height) % height;
+            redsum += pixels[h * 4 + k * 4 * width] / 255;
+            bluesum += pixels[h * 4 + k * 4 * width + 2] / 255;
+            greensum += pixels[h * 4 + k * 4 * width + 1] / 255;
+        }
+        var redstatus = pixels[index] / 255;
+        var bluestatus = pixels[index + 2] / 255;
+        var greenstatus = pixels[index + 1] / 255;
+        var [redval, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum);
+        this.color(redval, greenval, blueval);
+    }, {
+        useLegacyEncoder: true,
+        output: [
+            width,
+            height
+        ],
+        graphical: true
+    });
+    initial();
+    var initPixels = initial.getPixels();
+    render(initPixels, width, height);
+    ctx.drawImage(render.canvas, 0, 0);
+    function animate() {
+        render(render.getPixels(), width, height);
+        ctx.drawImage(render.canvas, 0, 0);
+        requestAnimationFrame(animate);
+    }
+    animate();
 }
-$f9d83769637380d8$var$animate();
+$f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.329c6ca4.js.map
+//# sourceMappingURL=index.677b9be4.js.map
