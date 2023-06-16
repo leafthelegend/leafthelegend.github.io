@@ -17523,8 +17523,10 @@ $f9d83769637380d8$var$canvas.height = document.body.clientHeight;
 var $f9d83769637380d8$var$width = $f9d83769637380d8$var$canvas.width;
 var $f9d83769637380d8$var$height = $f9d83769637380d8$var$canvas.height;
 const $f9d83769637380d8$var$initial = $f9d83769637380d8$var$gpu.createKernel(function() {
-    var val = Math.trunc(Math.random() * 2);
-    this.color(val, val, val);
+    var redval = Math.trunc(Math.random() * 2);
+    var blueval = Math.trunc(Math.random() * 2);
+    var greenval = Math.trunc(Math.random() * 2);
+    this.color(redval, greenval, blueval);
 }, {
     useLegacyEncoder: true,
     output: [
@@ -17533,24 +17535,58 @@ const $f9d83769637380d8$var$initial = $f9d83769637380d8$var$gpu.createKernel(fun
     ],
     graphical: true
 });
+function $f9d83769637380d8$var$rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum) {
+    const RANGE = 3;
+    var redavg = redsum / (2 * RANGE + 1) ** 2;
+    var blueavg = bluesum / (2 * RANGE + 1) ** 2;
+    var greenavg = greensum / (2 * RANGE + 1) ** 2;
+    var redval = 0;
+    var blueval = 0;
+    var greenval = 0;
+    if (redavg > 0.42857141799999 && blueavg < 0.5) redval = 1;
+    else redval = 0;
+    if (blueavg > 0.42857141799999 && greenavg < 0.5) blueval = 1;
+    else blueval = 0;
+    if (greenavg > 0.42857141799999 && redavg < 0.5) greenval = 1;
+    else greenval = 0;
+    return [
+        redval,
+        greenval,
+        blueval
+    ];
+}
+$f9d83769637380d8$var$gpu.addFunction($f9d83769637380d8$var$rule, {
+    argumentTypes: {
+        redstatus: "Number",
+        bluestatus: "Number",
+        greenstatus: "Number",
+        redsum: "Number",
+        greensum: "Number",
+        bluesum: "Number"
+    },
+    returnType: "Array(3)"
+});
 const $f9d83769637380d8$var$render = $f9d83769637380d8$var$gpu.createKernel(function(pixels, width, height) {
+    const RANGE = 3;
     let x = this.thread.x;
     let y = height - 1 - this.thread.y;
     let index = (x + y * width) * 4;
     //count live neighbors
-    let sum = 0;
-    for(var j = -1; j <= 1; j++)for(var i = -1; i <= 1; i++){
+    let redsum = 0;
+    let bluesum = 0;
+    let greensum = 0;
+    for(var j = -RANGE; j <= RANGE; j++)for(var i = -RANGE; i <= RANGE; i++){
         var h = (x + i + width) % width;
         var k = (y + j + height) % height;
-        sum += pixels[h * 4 + k * 4 * width] != 0 ? 1 : 0;
+        redsum += pixels[h * 4 + k * 4 * width] / 255;
+        bluesum += pixels[h * 4 + k * 4 * width + 2] / 255;
+        greensum += pixels[h * 4 + k * 4 * width + 1] / 255;
     }
-    var status = pixels[index] != 0 ? 1 : 0;
-    sum -= status;
-    var val = 0;
-    if (status == 1 && (sum == 3 || sum == 2)) val = 1;
-    if (status == 1 && (sum < 2 || sum > 3)) val = 0;
-    if (status == 0 && sum == 3) val = 1;
-    this.color(val, val, val, 1);
+    var redstatus = pixels[index] / 255;
+    var bluestatus = pixels[index + 2] / 255;
+    var greenstatus = pixels[index + 1] / 255;
+    var [redval, greenval, blueval] = $f9d83769637380d8$var$rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum);
+    this.color(redval, greenval, blueval);
 }, {
     useLegacyEncoder: true,
     output: [
@@ -17562,6 +17598,7 @@ const $f9d83769637380d8$var$render = $f9d83769637380d8$var$gpu.createKernel(func
 $f9d83769637380d8$var$initial();
 var $f9d83769637380d8$var$initPixels = $f9d83769637380d8$var$initial.getPixels();
 $f9d83769637380d8$var$render($f9d83769637380d8$var$initPixels, $f9d83769637380d8$var$width, $f9d83769637380d8$var$height);
+$f9d83769637380d8$var$ctx.drawImage($f9d83769637380d8$var$render.canvas, 0, 0);
 function $f9d83769637380d8$var$animate() {
     $f9d83769637380d8$var$render($f9d83769637380d8$var$render.getPixels(), $f9d83769637380d8$var$width, $f9d83769637380d8$var$height);
     $f9d83769637380d8$var$ctx.drawImage($f9d83769637380d8$var$render.canvas, 0, 0);
@@ -17570,4 +17607,4 @@ function $f9d83769637380d8$var$animate() {
 $f9d83769637380d8$var$animate();
 
 
-//# sourceMappingURL=index.4db28b8c.js.map
+//# sourceMappingURL=index.329c6ca4.js.map
