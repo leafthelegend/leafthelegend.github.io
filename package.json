@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel",
-    "build": "parcel build",
-    "predeploy": "rm -rf dist && parcel build src/index.html --public-url 'https://cdn.jsdelivr.net/gh/leafthelegend/leafthelegend.github.io@gh-pages'",
+    "build": "parcel build --no-optimize",
+    "predeploy": "rm -rf dist && parcel build src/index.html --no-optimize --public-url 'https://cdn.jsdelivr.net/gh/leafthelegend/leafthelegend.github.io@gh-pages'",
     "deploy": "gh-pages -d dist"
   },
   "repository": {
@@ -24,7 +24,8 @@
     "gh-pages": "^5.0.0",
     "gpu.js": "^2.16.0",
     "math.js": "^1.1.46",
-    "parcel": "^2.9.2"
+    "parcel": "^2.9.2",
+    "tooloud": "^2.0.4"
   },
   "targets": {
     "main": false
