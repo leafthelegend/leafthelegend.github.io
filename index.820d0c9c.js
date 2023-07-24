@@ -17513,11 +17513,555 @@ highp float nrand(highp vec2 n) {
 });
 
 
+/*
+    Perlin noise implementation taken from http://mrl.nyu.edu/~perlin/noise/
+    Simplex noise implementation taken from http://www.csee.umbc.edu/~olano/s2002c36/ch02.pdf
+    Worley noise implementation taken from https://aftbit.com/cell-noise-2/
+*/ const $fcf9268984dd8068$var$PERMUTATION = [
+    151,
+    160,
+    137,
+    91,
+    90,
+    15,
+    131,
+    13,
+    201,
+    95,
+    96,
+    53,
+    194,
+    233,
+    7,
+    225,
+    140,
+    36,
+    103,
+    30,
+    69,
+    142,
+    8,
+    99,
+    37,
+    240,
+    21,
+    10,
+    23,
+    190,
+    6,
+    148,
+    247,
+    120,
+    234,
+    75,
+    0,
+    26,
+    197,
+    62,
+    94,
+    252,
+    219,
+    203,
+    117,
+    35,
+    11,
+    32,
+    57,
+    177,
+    33,
+    88,
+    237,
+    149,
+    56,
+    87,
+    174,
+    20,
+    125,
+    136,
+    171,
+    168,
+    68,
+    175,
+    74,
+    165,
+    71,
+    134,
+    139,
+    48,
+    27,
+    166,
+    77,
+    146,
+    158,
+    231,
+    83,
+    111,
+    229,
+    122,
+    60,
+    211,
+    133,
+    230,
+    220,
+    105,
+    92,
+    41,
+    55,
+    46,
+    245,
+    40,
+    244,
+    102,
+    143,
+    54,
+    65,
+    25,
+    63,
+    161,
+    1,
+    216,
+    80,
+    73,
+    209,
+    76,
+    132,
+    187,
+    208,
+    89,
+    18,
+    169,
+    200,
+    196,
+    135,
+    130,
+    116,
+    188,
+    159,
+    86,
+    164,
+    100,
+    109,
+    198,
+    173,
+    186,
+    3,
+    64,
+    52,
+    217,
+    226,
+    250,
+    124,
+    123,
+    5,
+    202,
+    38,
+    147,
+    118,
+    126,
+    255,
+    82,
+    85,
+    212,
+    207,
+    206,
+    59,
+    227,
+    47,
+    16,
+    58,
+    17,
+    182,
+    189,
+    28,
+    42,
+    223,
+    183,
+    170,
+    213,
+    119,
+    248,
+    152,
+    2,
+    44,
+    154,
+    163,
+    70,
+    221,
+    153,
+    101,
+    155,
+    167,
+    43,
+    172,
+    9,
+    129,
+    22,
+    39,
+    253,
+    19,
+    98,
+    108,
+    110,
+    79,
+    113,
+    224,
+    232,
+    178,
+    185,
+    112,
+    104,
+    218,
+    246,
+    97,
+    228,
+    251,
+    34,
+    242,
+    193,
+    238,
+    210,
+    144,
+    12,
+    191,
+    179,
+    162,
+    241,
+    81,
+    51,
+    145,
+    235,
+    249,
+    14,
+    239,
+    107,
+    49,
+    192,
+    214,
+    31,
+    181,
+    199,
+    106,
+    157,
+    184,
+    84,
+    204,
+    176,
+    115,
+    121,
+    50,
+    45,
+    127,
+    4,
+    150,
+    254,
+    138,
+    236,
+    205,
+    93,
+    222,
+    114,
+    67,
+    29,
+    24,
+    72,
+    243,
+    141,
+    128,
+    195,
+    78,
+    66,
+    215,
+    61,
+    156,
+    180
+];
+const $fcf9268984dd8068$var$P = [
+    ...$fcf9268984dd8068$var$PERMUTATION,
+    ...$fcf9268984dd8068$var$PERMUTATION
+];
+class $fcf9268984dd8068$var$Perlin {
+    constructor(seed = 3000){
+        this._seedValue = $fcf9268984dd8068$var$Perlin.xorshift(seed);
+        this.noise = this.noise.bind(this);
+        this.setSeed = this.setSeed.bind(this);
+    }
+    static xorshift(value) {
+        let x = value ^ value >> 12;
+        x = x ^ x << 25;
+        x = x ^ x >> 27;
+        return x * 2;
+    }
+    static lerp(t, a, b) {
+        return a + t * (b - a);
+    }
+    static fade(t) {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+    static grad(hash, x, y, z) {
+        var h = hash & 15, u = h < 8 ? x : y, v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+        return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+    }
+    setSeed(seed = 3000) {
+        this._seedValue = $fcf9268984dd8068$var$Perlin.xorshift(seed);
+    }
+    noise(a, b, c) {
+        let x = a + this._seedValue;
+        let y = b + this._seedValue;
+        let z = c + this._seedValue;
+        const X = Math.floor(x) & 255;
+        const Y = Math.floor(y) & 255;
+        const Z = Math.floor(z) & 255;
+        x -= Math.floor(x);
+        y -= Math.floor(y);
+        z -= Math.floor(z);
+        const u = $fcf9268984dd8068$var$Perlin.fade(x);
+        const v = $fcf9268984dd8068$var$Perlin.fade(y);
+        const w = $fcf9268984dd8068$var$Perlin.fade(z);
+        const A = $fcf9268984dd8068$var$P[X] + Y, AA = $fcf9268984dd8068$var$P[A] + Z, AB = $fcf9268984dd8068$var$P[A + 1] + Z;
+        const B = $fcf9268984dd8068$var$P[X + 1] + Y, BA = $fcf9268984dd8068$var$P[B] + Z, BB = $fcf9268984dd8068$var$P[B + 1] + Z;
+        return $fcf9268984dd8068$var$Perlin.lerp(w, $fcf9268984dd8068$var$Perlin.lerp(v, $fcf9268984dd8068$var$Perlin.lerp(u, $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[AA], x, y, z), $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[BA], x - 1, y, z)), $fcf9268984dd8068$var$Perlin.lerp(u, $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[AB], x, y - 1, z), $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[BB], x - 1, y - 1, z))), $fcf9268984dd8068$var$Perlin.lerp(v, $fcf9268984dd8068$var$Perlin.lerp(u, $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[AA + 1], x, y, z - 1), $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[BA + 1], x - 1, y, z - 1)), $fcf9268984dd8068$var$Perlin.lerp(u, $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[AB + 1], x, y - 1, z - 1), $fcf9268984dd8068$var$Perlin.grad($fcf9268984dd8068$var$P[BB + 1], x - 1, y - 1, z - 1))));
+    }
+}
+var $fcf9268984dd8068$export$2e2bcd8739ae039 = $fcf9268984dd8068$var$Perlin;
+
+
+let $179192acb54636a1$var$i, $179192acb54636a1$var$j, $179192acb54636a1$var$k;
+let $179192acb54636a1$var$A = [
+    0,
+    0,
+    0
+];
+let $179192acb54636a1$var$u, $179192acb54636a1$var$v, $179192acb54636a1$var$w;
+let $179192acb54636a1$var$T = [
+    0x15,
+    0x38,
+    0x32,
+    0x2c,
+    0x0d,
+    0x13,
+    0x07,
+    0x2a
+];
+class $179192acb54636a1$var$Simplex {
+    constructor(seed = 3000){
+        this._seedValue = $179192acb54636a1$var$Simplex.xorshift(seed);
+        this.setSeed = this.setSeed.bind(this);
+        this.noise = this.noise.bind(this);
+    }
+    static xorshift(value) {
+        let x = value ^ value >> 12;
+        x = x ^ x << 25;
+        x = x ^ x >> 27;
+        return x * 2;
+    }
+    static b2func(N, B) {
+        return N >> B & 1;
+    }
+    static b4func(i, j, k, B) {
+        return $179192acb54636a1$var$T[$179192acb54636a1$var$Simplex.b2func(i, B) << 2 | $179192acb54636a1$var$Simplex.b2func(j, B) << 1 | $179192acb54636a1$var$Simplex.b2func(k, B)];
+    }
+    static K(a) {
+        var s = ($179192acb54636a1$var$A[0] + $179192acb54636a1$var$A[1] + $179192acb54636a1$var$A[2]) / 6.;
+        var x = $179192acb54636a1$var$u - $179192acb54636a1$var$A[0] + s, y = $179192acb54636a1$var$v - $179192acb54636a1$var$A[1] + s, z = $179192acb54636a1$var$w - $179192acb54636a1$var$A[2] + s;
+        var t = .6 - x * x - y * y - z * z;
+        var h = $179192acb54636a1$var$Simplex.shuffle($179192acb54636a1$var$i + $179192acb54636a1$var$A[0], $179192acb54636a1$var$j + $179192acb54636a1$var$A[1], $179192acb54636a1$var$k + $179192acb54636a1$var$A[2]);
+        $179192acb54636a1$var$A[a]++;
+        if (t < 0) return 0;
+        var b5 = h >> 5 & 1, b4 = h >> 4 & 1, b3 = h >> 3 & 1, b2 = h >> 2 & 1, b = h & 3;
+        var p = b === 1 ? x : b === 2 ? y : z, q = b === 1 ? y : b === 2 ? z : x, r = b === 1 ? z : b === 2 ? x : y;
+        p = b5 === b3 ? -p : p;
+        q = b5 === b4 ? -q : q;
+        r = b5 !== (b4 ^ b3) ? -r : r;
+        t *= t;
+        return 8 * t * t * (p + (b === 0 ? q + r : b2 === 0 ? q : r));
+    }
+    static shuffle(i, j, k) {
+        return $179192acb54636a1$var$Simplex.b4func(i, j, k, 0) + $179192acb54636a1$var$Simplex.b4func(j, k, i, 1) + $179192acb54636a1$var$Simplex.b4func(k, i, j, 2) + $179192acb54636a1$var$Simplex.b4func(i, j, k, 3) + $179192acb54636a1$var$Simplex.b4func(j, k, i, 4) + $179192acb54636a1$var$Simplex.b4func(k, i, j, 5) + $179192acb54636a1$var$Simplex.b4func(i, j, k, 6) + $179192acb54636a1$var$Simplex.b4func(j, k, i, 7);
+    }
+    setSeed(seed = 3000) {
+        this._seedValue = $179192acb54636a1$var$Simplex.xorshift(seed);
+    }
+    noise(a, b, c) {
+        let x = a + this._seedValue;
+        let y = b + this._seedValue;
+        let z = c + this._seedValue;
+        let s = (x + y + z) / 3;
+        $179192acb54636a1$var$i = Math.floor(x + s);
+        $179192acb54636a1$var$j = Math.floor(y + s);
+        $179192acb54636a1$var$k = Math.floor(z + s);
+        s = ($179192acb54636a1$var$i + $179192acb54636a1$var$j + $179192acb54636a1$var$k) / 6.;
+        $179192acb54636a1$var$u = x - $179192acb54636a1$var$i + s;
+        $179192acb54636a1$var$v = y - $179192acb54636a1$var$j + s;
+        $179192acb54636a1$var$w = z - $179192acb54636a1$var$k + s;
+        $179192acb54636a1$var$A[0] = $179192acb54636a1$var$A[1] = $179192acb54636a1$var$A[2] = 0;
+        const hi = $179192acb54636a1$var$u >= $179192acb54636a1$var$w ? $179192acb54636a1$var$u >= $179192acb54636a1$var$v ? 0 : 1 : $179192acb54636a1$var$v >= $179192acb54636a1$var$w ? 1 : 2;
+        const lo = $179192acb54636a1$var$u < $179192acb54636a1$var$w ? $179192acb54636a1$var$u < $179192acb54636a1$var$v ? 0 : 1 : $179192acb54636a1$var$v < $179192acb54636a1$var$w ? 1 : 2;
+        return $179192acb54636a1$var$Simplex.K(hi) + $179192acb54636a1$var$Simplex.K(3 - hi - lo) + $179192acb54636a1$var$Simplex.K(lo) + $179192acb54636a1$var$Simplex.K(0);
+    }
+}
+var $179192acb54636a1$export$2e2bcd8739ae039 = $179192acb54636a1$var$Simplex;
+
+
+class $4e7e9e307c4523d5$var$Worley {
+    constructor(seed = 3000){
+        this._seedValue = seed;
+        this.setSeed = this.setSeed.bind(this);
+        this.noise = this.noise.bind(this);
+        this.Euclidean = this.Euclidean.bind(this);
+        this.Manhattan = this.Manhattan.bind(this);
+    }
+    static xorshift(value) {
+        let x = value ^ value >> 12;
+        x = x ^ x << 25;
+        x = x ^ x >> 27;
+        return x * 2;
+    }
+    static hash(i, j, k) {
+        return (((2166136261 ^ i) * 16777619 ^ j) * 16777619 ^ k) * 16777619 & 0xffffffff;
+    }
+    static d(p1, p2) {
+        return [
+            p1.x - p2.x,
+            p1.y - p2.y,
+            p1.z - p2.z
+        ];
+    }
+    static EuclideanDistance(p1, p2) {
+        return $4e7e9e307c4523d5$var$Worley.d(p1, p2).reduce((sum, x)=>sum + x * x, 0);
+    }
+    static ManhattanDistance(p1, p2) {
+        return $4e7e9e307c4523d5$var$Worley.d(p1, p2).reduce((sum, x)=>sum + Math.abs(x), 0);
+    }
+    static probLookup(value) {
+        value = value & 0xffffffff;
+        if (value < 393325350) return 1;
+        if (value < 1022645910) return 2;
+        if (value < 1861739990) return 3;
+        if (value < 2700834071) return 4;
+        if (value < 3372109335) return 5;
+        if (value < 3819626178) return 6;
+        if (value < 4075350088) return 7;
+        if (value < 4203212043) return 8;
+        return 9;
+    }
+    static insert(arr, value) {
+        let temp;
+        for(let i = arr.length - 1; i >= 0; i--){
+            if (value > arr[i]) break;
+            temp = arr[i];
+            arr[i] = value;
+            if (i + 1 < arr.length) arr[i + 1] = temp;
+        }
+    }
+    noise(input, distanceFunc) {
+        let lastRandom, numberFeaturePoints, randomDiff = {
+            x: 0,
+            y: 0,
+            z: 0
+        }, featurePoint = {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+        let cubeX, cubeY, cubeZ;
+        let distanceArray = [
+            9999999,
+            9999999,
+            9999999
+        ];
+        for(let i = -1; i < 2; ++i)for(let j = -1; j < 2; ++j)for(let k = -1; k < 2; ++k){
+            cubeX = Math.floor(input.x) + i;
+            cubeY = Math.floor(input.y) + j;
+            cubeZ = Math.floor(input.z) + k;
+            lastRandom = $4e7e9e307c4523d5$var$Worley.xorshift($4e7e9e307c4523d5$var$Worley.hash(cubeX + this._seedValue & 0xffffffff, cubeY & 0xffffffff, cubeZ & 0xffffffff));
+            numberFeaturePoints = $4e7e9e307c4523d5$var$Worley.probLookup(lastRandom);
+            for(let l = 0; l < numberFeaturePoints; ++l){
+                lastRandom = $4e7e9e307c4523d5$var$Worley.xorshift(lastRandom);
+                randomDiff.X = lastRandom / 0x100000000;
+                lastRandom = $4e7e9e307c4523d5$var$Worley.xorshift(lastRandom);
+                randomDiff.Y = lastRandom / 0x100000000;
+                lastRandom = $4e7e9e307c4523d5$var$Worley.xorshift(lastRandom);
+                randomDiff.Z = lastRandom / 0x100000000;
+                featurePoint = {
+                    x: randomDiff.X + cubeX,
+                    y: randomDiff.Y + cubeY,
+                    z: randomDiff.Z + cubeZ
+                };
+                $4e7e9e307c4523d5$var$Worley.insert(distanceArray, distanceFunc(input, featurePoint));
+            }
+        }
+        return distanceArray.map((x)=>x < 0 ? 0 : x > 1 ? 1 : x);
+    }
+    setSeed(seed = 3000) {
+        this._seedValue = seed;
+    }
+    Euclidean(x, y, z) {
+        return this.noise({
+            x: x,
+            y: y,
+            z: z
+        }, $4e7e9e307c4523d5$var$Worley.EuclideanDistance);
+    }
+    Manhattan(x, y, z) {
+        return this.noise({
+            x: x,
+            y: y,
+            z: z
+        }, $4e7e9e307c4523d5$var$Worley.ManhattanDistance);
+    }
+}
+var $4e7e9e307c4523d5$export$2e2bcd8739ae039 = $4e7e9e307c4523d5$var$Worley;
+
+
+class $3ff8847932f9d987$var$Fractal {
+    static noise(x, y, z, octaves, noiseCallback) {
+        let t = 0, f = 1, n = 0;
+        for(let i = 0; i < octaves; i++){
+            n += noiseCallback(x * f, y * f, z * f) / f;
+            t += 1 / f;
+            f *= 2;
+        }
+        return n / t;
+    }
+}
+var $3ff8847932f9d987$export$2e2bcd8739ae039 = $3ff8847932f9d987$var$Fractal;
+
+
+const $08b0082b896f882b$var$perlin = new (0, $fcf9268984dd8068$export$2e2bcd8739ae039)();
+const $08b0082b896f882b$var$simplex = new (0, $179192acb54636a1$export$2e2bcd8739ae039)();
+const $08b0082b896f882b$var$worley = new (0, $4e7e9e307c4523d5$export$2e2bcd8739ae039)();
+var $08b0082b896f882b$export$2e2bcd8739ae039 = {
+    Perlin: {
+        noise: $08b0082b896f882b$var$perlin.noise,
+        setSeed: $08b0082b896f882b$var$perlin.setSeed,
+        create: (seed)=>new (0, $fcf9268984dd8068$export$2e2bcd8739ae039)(seed)
+    },
+    Simplex: {
+        noise: $08b0082b896f882b$var$simplex.noise,
+        setSeed: $08b0082b896f882b$var$simplex.setSeed,
+        create: (seed)=>new (0, $179192acb54636a1$export$2e2bcd8739ae039)(seed)
+    },
+    Worley: {
+        Euclidean: $08b0082b896f882b$var$worley.Euclidean,
+        Manhattan: $08b0082b896f882b$var$worley.Manhattan,
+        setSeed: $08b0082b896f882b$var$worley.setSeed,
+        create: (seed)=>new (0, $4e7e9e307c4523d5$export$2e2bcd8739ae039)(seed)
+    },
+    Fractal: {
+        noise: (0, $3ff8847932f9d987$export$2e2bcd8739ae039).noise
+    }
+};
+
+
+var $3592d94a2bfb4451$export$2e2bcd8739ae039 = (0, $08b0082b896f882b$export$2e2bcd8739ae039);
+
+
 "use strict";
 function $f9d83769637380d8$var$main() {
     const gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
     //set canvas width and height to document
     const canvas = document.getElementById("canvas");
+    //TODO: make canvas loop
     const ctx = canvas.getContext("2d");
     canvas.width = document.body.clientWidth;
     canvas.height = document.body.clientHeight;
@@ -17536,24 +18080,27 @@ function $f9d83769637380d8$var$main() {
         ],
         graphical: true
     });
-    function rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum) {
+    function rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2) {
         const RANGE = 3;
         var redavg = redsum / (2 * RANGE + 1) ** 2;
-        var blueavg = bluesum / (2 * RANGE + 1) ** 2;
         var greenavg = greensum / (2 * RANGE + 1) ** 2;
-        var redval = 0;
-        var blueval = 0;
-        var greenval = 0;
-        if (redavg > 0.42857141799999 && blueavg < 0.5) redval = 1;
-        else redval = 0;
-        if (blueavg > 0.42857141799999 && greenavg < 0.5) blueval = 1;
-        else blueval = 0;
-        if (greenavg > 0.42857141799999 && redavg < 0.5) greenval = 1;
-        else greenval = 0;
+        var blueavg = bluesum / (2 * RANGE + 1) ** 2;
+        const RANGE2 = 5;
+        var redavg2 = redsum2 / (2 * RANGE2 + 1) ** 2;
+        var greenavg2 = greensum2 / (2 * RANGE2 + 1) ** 2;
+        var blueavg2 = bluesum2 / (2 * RANGE2 + 1) ** 2;
+        var redchange = 0;
+        var greenchange = 0;
+        var bluechange = 0;
+        if (redavg >= 0.1 && redavg <= 0.2) redchange = 0.1;
+        if (redavg >= 0.3 && redavg <= 0.4) redchange = -0.1;
+        if (redavg2 >= 0.1 && redavg2 <= 0.2) redchange = -0.1;
+        if (redavg2 >= 0.7 && redavg2 <= 0.8) redchange = -0.1;
+        if (redavg >= 0.330 && redavg <= 0.350) redchange = -0.1;
         return [
-            redval,
-            greenval,
-            blueval
+            redstatus + redchange,
+            greenstatus + greenchange,
+            bluestatus + bluechange
         ];
     }
     gpu.addFunction(rule, {
@@ -17563,12 +18110,16 @@ function $f9d83769637380d8$var$main() {
             greenstatus: "Number",
             redsum: "Number",
             greensum: "Number",
-            bluesum: "Number"
+            bluesum: "Number",
+            redsum2: "Number",
+            greensum2: "Number",
+            bluesum2: "Number"
         },
         returnType: "Array(3)"
     });
     const render = gpu.createKernel(function(pixels, width, height) {
         const RANGE = 3;
+        const RANGE2 = 5;
         let x = this.thread.x;
         let y = height - 1 - this.thread.y;
         let index = (x + y * width) * 4;
@@ -17583,10 +18134,20 @@ function $f9d83769637380d8$var$main() {
             bluesum += pixels[h * 4 + k * 4 * width + 2] / 255;
             greensum += pixels[h * 4 + k * 4 * width + 1] / 255;
         }
+        let redsum2 = 0;
+        let bluesum2 = 0;
+        let greensum2 = 0;
+        for(var J = -RANGE2; J <= RANGE2; J++)for(var I = -RANGE2; I <= RANGE2; I++){
+            var h = (x + I + width) % width;
+            var k = (y + J + height) % height;
+            redsum2 += pixels[h * 4 + k * 4 * width] / 255;
+            bluesum2 += pixels[h * 4 + k * 4 * width + 2] / 255;
+            greensum2 += pixels[h * 4 + k * 4 * width + 1] / 255;
+        }
         var redstatus = pixels[index] / 255;
         var bluestatus = pixels[index + 2] / 255;
         var greenstatus = pixels[index + 1] / 255;
-        var [redval, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum);
+        var [redval, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2);
         this.color(redval, greenval, blueval);
     }, {
         useLegacyEncoder: true,
@@ -17598,10 +18159,97 @@ function $f9d83769637380d8$var$main() {
     });
     initial();
     var initPixels = initial.getPixels();
-    render(initPixels, width, height);
+    data = ctx.getImageData(0, 0, width, height).data;
+    const rNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
+    const gNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
+    const bNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
+    for(let i = 0; i < width; i++)for(let j = 0; j < height; j++){
+        const index = (i + j * width) * 4;
+        /*
+        let x, y, z;
+
+        Normalize:
+        x = i / canvasWidth;
+        y = j / canvasHeight;
+        z = 0;
+        // Fixing one of the coordinates turns 3D noise into 2D noise
+        // Fixing two of the coordinates turns 3D noise into 1D noise
+        // Fixed coordinate will serve as a seed, i.e. you'll get different results for different values
+        
+        // Scale:
+        const scale = 10;
+        x = scale * x;
+        y = scale * y;
+        */ // In one go:
+        const x = 30 * (i / Math.max(width, height));
+        const y = 30 * (j / Math.max(width, height)); // You can use different scale values for each coordinate
+        const z = 0;
+        const r = Math.floor(255 * rNoise(x, y, z));
+        const g = Math.floor(255 * gNoise(x, y, z));
+        const b = Math.floor(255 * bNoise(x, y, z));
+        data[index + 0] = r; // R
+        data[index + 1] = 0 //g;            // G
+        ;
+        data[index + 2] = 0 //b;            // B
+        ;
+        data[index + 3] = 255; // A
+    }
+    render(data, width, height);
     ctx.drawImage(render.canvas, 0, 0);
+    ctx.filter = "saturate(1)";
+    var tapEvent = false;
+    var tapx = 0;
+    var tapy = 0;
+    canvas.addEventListener("touchstart", function(e) {
+        tapEvent = true;
+        tapx = e.touches[0].offsetX;
+        tapy = e.touches[0].offsetY;
+        data = processData(data);
+        e.preventDefault();
+    }, false);
+    canvas.addEventListener("mousedown", function(e) {
+        tapEvent = true;
+        tapx = e.offsetX;
+        tapy = e.offsetY;
+        data = processData(data);
+        e.preventDefault();
+    }, false);
+    canvas.addEventListener("mousemove", function(e) {
+        if (e.buttons != 1) return;
+        console.log("mousemove");
+        tapEvent = true;
+        tapx = e.offsetX;
+        tapy = e.offsetY;
+        data = processData(data);
+        e.preventDefault();
+    }, false);
+    const TAPRANGE = 20;
+    function getCircleHeights(r) {
+        var heights = [];
+        for(var j = -r; j <= r; j++)heights.push(Math.floor(Math.sqrt(r * r - j * j)));
+        return heights;
+    }
+    const TAPHEIGHTS = getCircleHeights(TAPRANGE);
+    function processData(data1) {
+        if (tapEvent) {
+            tapEvent = false;
+            let x = tapx;
+            let y = tapy;
+            for(var j = -TAPRANGE; j <= TAPRANGE; j++)for(var i = -TAPHEIGHTS[j + TAPRANGE]; i <= TAPHEIGHTS[j + TAPRANGE]; i++){
+                var h = (x + i + width) % width;
+                var k = (y + j + height) % height;
+                data1[h * 4 + k * 4 * width] += 255;
+                data1[h * 4 + k * 4 * width + 2] += 0;
+                data1[h * 4 + k * 4 * width + 1] += 0;
+            }
+        }
+        return data1;
+    }
     function animate() {
-        render(render.getPixels(), width, height);
+        console.log("animate");
+        render(data, width, height);
+        data = render.getPixels();
+        data = processData(data);
         ctx.drawImage(render.canvas, 0, 0);
         requestAnimationFrame(animate);
     }
@@ -17610,4 +18258,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.677b9be4.js.map
+//# sourceMappingURL=index.820d0c9c.js.map
