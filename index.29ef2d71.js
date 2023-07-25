@@ -18058,14 +18058,15 @@ var $3592d94a2bfb4451$export$2e2bcd8739ae039 = (0, $08b0082b896f882b$export$2e2b
 
 "use strict";
 function $f9d83769637380d8$var$main() {
-    console.log("main");
     const gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
+    console.log(gpu);
     //set canvas width and height to document
     const canvas = document.getElementById("canvas");
     //TODO: make canvas loop
     const ctx = canvas.getContext("2d");
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    const SCALE = 2;
+    canvas.width = Math.ceil(document.body.clientWidth / SCALE);
+    canvas.height = Math.ceil(document.body.clientHeight / SCALE);
     var width = canvas.width;
     var height = canvas.height;
     const initial = gpu.createKernel(function() {
@@ -18197,31 +18198,34 @@ function $f9d83769637380d8$var$main() {
     }
     render(data, width, height);
     ctx.drawImage(render.canvas, 0, 0);
-    ctx.filter = "saturate(1)";
+    // ctx.filter = "hue-rotate(120deg) brightness(2)"
     var tapEvent = false;
     var tapx = 0;
     var tapy = 0;
     canvas.addEventListener("touchstart", function(e) {
         tapEvent = true;
-        tapx = e.touches[0].offsetX;
-        tapy = e.touches[0].offsetY;
-        data = processData(data);
-        e.preventDefault();
+        console.log(e);
+        let bcr = e.target.getBoundingClientRect();
+        tapx = e.targetTouches[0].clientX - bcr.x;
+        tapy = e.targetTouches[0].clientY - bcr.y;
+        console.log(tapx, tapy);
+    // e.preventDefault();
     }, false);
     canvas.addEventListener("touchmove", function(e) {
         if (e.touches.length != 1) return;
         tapEvent = true;
-        tapx = e.touches[0].offsetX;
-        tapy = e.touches[0].offsetY;
+        let bcr = e.target.getBoundingClientRect();
+        tapx = e.targetTouches[0].clientX - bcr.x;
+        tapy = e.targetTouches[0].clientY - bcr.y;
         data = processData(data);
-        e.preventDefault();
+    // e.preventDefault();
     }, false);
     canvas.addEventListener("mousedown", function(e) {
         tapEvent = true;
         tapx = e.offsetX;
         tapy = e.offsetY;
         data = processData(data);
-        e.preventDefault();
+    // e.preventDefault();
     }, false);
     canvas.addEventListener("mousemove", function(e) {
         if (e.buttons != 1) return;
@@ -18230,7 +18234,7 @@ function $f9d83769637380d8$var$main() {
         tapx = e.offsetX;
         tapy = e.offsetY;
         data = processData(data);
-        e.preventDefault();
+    // e.preventDefault();
     }, false);
     const TAPRANGE = 20;
     function getCircleHeights(r) {
@@ -18242,8 +18246,8 @@ function $f9d83769637380d8$var$main() {
     function processData(data) {
         if (tapEvent) {
             tapEvent = false;
-            let x = tapx;
-            let y = tapy;
+            let x = Math.ceil(tapx / SCALE);
+            let y = Math.ceil(tapy / SCALE);
             for(var j = -TAPRANGE; j <= TAPRANGE; j++)for(var i = -TAPHEIGHTS[j + TAPRANGE]; i <= TAPHEIGHTS[j + TAPRANGE]; i++){
                 var h = (x + i + width) % width;
                 var k = (y + j + height) % height;
@@ -18254,7 +18258,16 @@ function $f9d83769637380d8$var$main() {
         }
         return data;
     }
+    var hue = 0;
+    function setHue(elem, hue) {
+        elem.style.filter = "hue-rotate(" + hue + "deg)";
+        //webkit
+        elem.style.webkitFilter = "hue-rotate(" + hue + "deg)";
+    }
     function animate() {
+        hue += 0;
+        hue %= 360;
+        setHue(canvas, hue);
         render(data, width, height);
         data = render.getPixels();
         data = processData(data);
@@ -18266,4 +18279,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.c3f91a70.js.map
+//# sourceMappingURL=index.29ef2d71.js.map
