@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel",
     "build": "parcel build --no-optimize",
-    "predeploy": "rm -rf dist && parcel build src/index.html --no-optimize --public-url 'https://cdn.jsdelivr.net/gh/leafthelegend/leafthelegend.github.io@gh-pages'",
+    "predeploy": "rm -rf dist && parcel build src/index.html --no-optimize --cache-dir './.parcel-deploy-cache' --public-url 'https://cdn.jsdelivr.net/gh/leafthelegend/leafthelegend.github.io@gh-pages'",
     "deploy": "gh-pages -d dist"
   },
   "repository": {
