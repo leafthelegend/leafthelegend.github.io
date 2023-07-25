@@ -18069,10 +18069,10 @@ function $f9d83769637380d8$var$main() {
     var width = canvas.width;
     var height = canvas.height;
     const initial = gpu.createKernel(function() {
-        var redval = Math.trunc(Math.random() * 2);
+        var redval1 = Math.trunc(Math.random() * 2);
         var blueval = Math.trunc(Math.random() * 2);
         var greenval = Math.trunc(Math.random() * 2);
-        this.color(redval, greenval, blueval);
+        this.color(redval1, greenval, blueval);
     }, {
         useLegacyEncoder: true,
         output: [
@@ -18096,7 +18096,7 @@ function $f9d83769637380d8$var$main() {
         // if( redavg >= 0
         //     &&  redavg <= 0.2 ) { redchange = 0.1; }
         if (redavg >= 0.2 && redavg <= 0.9) redchange = -0.1;
-        if (redavg <= 0.1 && redavg2 >= 0.1) redchange = 0.3;
+        if (redavg <= 0.1 && redavg2 >= 0.1) redchange = 0.25;
         return [
             redstatus + redchange,
             greenstatus + greenchange,
@@ -18147,8 +18147,8 @@ function $f9d83769637380d8$var$main() {
         var redstatus = pixels[index] / 255;
         var bluestatus = pixels[index + 2] / 255;
         var greenstatus = pixels[index + 1] / 255;
-        var [redval, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2);
-        this.color(redval, greenval, blueval);
+        var [redval1, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2);
+        this.color(redval1, greenval, blueval);
     }, {
         useLegacyEncoder: true,
         output: [
@@ -18200,8 +18200,10 @@ function $f9d83769637380d8$var$main() {
     var tapEvent = false;
     var tapx = 0;
     var tapy = 0;
+    var mousedown = false;
     canvas.addEventListener("touchstart", function(e) {
         tapEvent = true;
+        mousedown = true;
         console.log(e);
         let bcr = e.target.getBoundingClientRect();
         tapx = e.targetTouches[0].clientX - bcr.x;
@@ -18209,8 +18211,12 @@ function $f9d83769637380d8$var$main() {
         console.log(tapx, tapy);
     // e.preventDefault();
     }, false);
+    canvas.addEventListener("touchend", function(e) {
+        mousedown = false;
+    // e.preventDefault();
+    }, false);
     canvas.addEventListener("touchmove", function(e) {
-        if (e.touches.length != 1) return;
+        if (e.touches.length != 1 && !mousedown) return;
         tapEvent = true;
         let bcr = e.target.getBoundingClientRect();
         tapx = e.targetTouches[0].clientX - bcr.x;
@@ -18220,35 +18226,53 @@ function $f9d83769637380d8$var$main() {
     }, false);
     canvas.addEventListener("mousedown", function(e) {
         tapEvent = true;
+        mousedown = true;
         tapx = e.offsetX;
         tapy = e.offsetY;
         data = processData(data);
     // e.preventDefault();
     }, false);
+    canvas.addEventListener("mouseup", function(e) {
+        mousedown = false;
+    // e.preventDefault();
+    }, false);
     canvas.addEventListener("mousemove", function(e) {
-        if (e.buttons != 1) return;
+        if (e.buttons != 1 && !mousedown) return;
         tapEvent = true;
         tapx = e.offsetX;
         tapy = e.offsetY;
         data = processData(data);
     // e.preventDefault();
     }, false);
-    const TAPRANGE = 20;
+    const TAPRANGE = 50;
     function getCircleHeights(r) {
         var heights = [];
         for(var j = -r; j <= r; j++)heights.push(Math.floor(Math.sqrt(r * r - j * j)));
         return heights;
     }
-    const TAPHEIGHTS = getCircleHeights(TAPRANGE);
+    const WOBBLERANGE = Math.floor(0 * TAPRANGE);
+    const TAPHEIGHTLIST = [];
+    for(var r = TAPRANGE - WOBBLERANGE; r <= TAPRANGE + WOBBLERANGE; r++)TAPHEIGHTLIST.push(getCircleHeights(r));
+    const NOISINESS = 0;
+    function signedSqrt(x) {
+        if (x < 0) return -Math.sqrt(-x);
+        else return Math.sqrt(x);
+    }
+    function wobbleFunction(t) {
+        return signedSqrt(0.35 + Math.sin(t) / 1.6) * WOBBLERANGE;
+    }
     function processData(data) {
-        if (tapEvent) {
+        if (tapEvent || mousedown) {
             tapEvent = false;
             let x = Math.ceil(tapx / SCALE);
             let y = Math.ceil(tapy / SCALE);
-            for(var j = -TAPRANGE; j <= TAPRANGE; j++)for(var i = -TAPHEIGHTS[j + TAPRANGE]; i <= TAPHEIGHTS[j + TAPRANGE]; i++){
+            let r = Math.floor(TAPRANGE + wobbleFunction(t));
+            let tapHeights = TAPHEIGHTLIST[r - TAPRANGE + WOBBLERANGE];
+            for(var j = -r; j <= r; j++)for(var i = -tapHeights[j + r]; i <= tapHeights[j + r]; i++){
                 var h = (x + i + width) % width;
                 var k = (y + j + height) % height;
-                data[h * 4 + k * 4 * width] += 255;
+                redval = data[h * 4 + k * 4 * width];
+                if (redval > 60) data[h * 4 + k * 4 * width] = 0;
                 data[h * 4 + k * 4 * width + 2] += 0;
                 data[h * 4 + k * 4 * width + 1] += 0;
             }
@@ -18256,12 +18280,15 @@ function $f9d83769637380d8$var$main() {
         return data;
     }
     var hue = 0;
+    var t = 0;
     function setHue(elem, hue) {
         elem.style.filter = "hue-rotate(" + hue + "deg)";
         //webkit
         elem.style.webkitFilter = "hue-rotate(" + hue + "deg)";
     }
     function animate() {
+        t += 0.1;
+        t %= 2 * Math.PI;
         hue += 0;
         hue %= 360;
         setHue(canvas, hue);
@@ -18272,8 +18299,19 @@ function $f9d83769637380d8$var$main() {
         requestAnimationFrame(animate);
     }
     animate();
+    //fadeins
+    var title = document.getElementById("title");
+    var subtitle = document.getElementById("subtitle");
+    var bio = document.getElementById("bio");
+    title.style.opacity = 1;
+    setTimeout(function() {
+        subtitle.style.opacity = 1;
+    }, 1000);
+    setTimeout(function() {
+        bio.style.opacity = 1;
+    }, 2000);
 }
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.85e1430e.js.map
+//# sourceMappingURL=index.dcac1581.js.map
