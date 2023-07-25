@@ -18059,7 +18059,6 @@ var $3592d94a2bfb4451$export$2e2bcd8739ae039 = (0, $08b0082b896f882b$export$2e2b
 "use strict";
 function $f9d83769637380d8$var$main() {
     const gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
-    console.log(gpu);
     //set canvas width and height to document
     const canvas = document.getElementById("canvas");
     //TODO: make canvas loop
@@ -18094,11 +18093,10 @@ function $f9d83769637380d8$var$main() {
         var redchange = 0;
         var greenchange = 0;
         var bluechange = 0;
-        if (redavg >= 0.1 && redavg <= 0.2) redchange = 0.1;
-        if (redavg >= 0.3 && redavg <= 0.4) redchange = -0.1;
-        if (redavg2 >= 0.1 && redavg2 <= 0.2) redchange = -0.1;
-        if (redavg2 >= 0.7 && redavg2 <= 0.8) redchange = -0.1;
-        if (redavg >= 0.330 && redavg <= 0.350) redchange = -0.1;
+        // if( redavg >= 0
+        //     &&  redavg <= 0.2 ) { redchange = 0.1; }
+        if (redavg >= 0.2 && redavg <= 0.9) redchange = -0.1;
+        if (redavg <= 0.1 && redavg2 >= 0.1) redchange = 0.3;
         return [
             redstatus + redchange,
             greenstatus + greenchange,
@@ -18229,7 +18227,6 @@ function $f9d83769637380d8$var$main() {
     }, false);
     canvas.addEventListener("mousemove", function(e) {
         if (e.buttons != 1) return;
-        console.log("mousemove");
         tapEvent = true;
         tapx = e.offsetX;
         tapy = e.offsetY;
@@ -18279,4 +18276,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.29ef2d71.js.map
+//# sourceMappingURL=index.85e1430e.js.map
