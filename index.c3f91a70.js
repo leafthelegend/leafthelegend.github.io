@@ -18058,6 +18058,7 @@ var $3592d94a2bfb4451$export$2e2bcd8739ae039 = (0, $08b0082b896f882b$export$2e2b
 
 "use strict";
 function $f9d83769637380d8$var$main() {
+    console.log("main");
     const gpu = new (0, $e487362bb08bb9ff$exports.GPU)();
     //set canvas width and height to document
     const canvas = document.getElementById("canvas");
@@ -18265,4 +18266,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.7563ea2e.js.map
+//# sourceMappingURL=index.c3f91a70.js.map
