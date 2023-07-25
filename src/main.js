@@ -6,7 +6,6 @@ import tooloud from 'tooloud';
 function main(){
 
 const gpu = new GPU();
-console.log(gpu);
 
 //set canvas width and height to document
 
@@ -47,16 +46,11 @@ function rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, red
     var greenchange = 0;
     var bluechange = 0;
 
-    if( redavg >= 0.1 
-        &&  redavg <= 0.2 ) { redchange = 0.1; }
-        if( redavg >= 0.3 
-        &&  redavg <= 0.4 ) { redchange = -0.1; }
-        if( redavg2 >= 0.1 
-        &&  redavg2 <= 0.2 ) { redchange = -0.1; }
-        if( redavg2 >= 0.7 
-        &&  redavg2 <= 0.8 ) { redchange = -0.1; }
-        if( redavg >= 0.330 
-        &&  redavg <= 0.350 ) { redchange = -0.1; }
+    // if( redavg >= 0
+    //     &&  redavg <= 0.2 ) { redchange = 0.1; }
+        if( redavg >= 0.2 
+        &&  redavg <= 0.9 ) { redchange = -0.1; }
+        if (redavg <= 0.1 && redavg2 >= 0.1){ redchange = 0.25; }
 
     return [redstatus+redchange,greenstatus+greenchange, bluestatus+bluechange];
     return [redstatus,greenstatus, bluestatus];
@@ -160,9 +154,11 @@ ctx.drawImage(render.canvas,0,0);
 var tapEvent = false;
 var tapx = 0;
 var tapy = 0;
+var mousedown = false;
 
 canvas.addEventListener('touchstart', function(e) {
     tapEvent = true;
+    mousedown = true;
     console.log(e);
     let bcr = e.target.getBoundingClientRect();
     tapx = e.targetTouches[0].clientX - bcr.x;
@@ -171,8 +167,13 @@ canvas.addEventListener('touchstart', function(e) {
     // e.preventDefault();
 }, false);
 
+canvas.addEventListener('touchend', function(e) {
+    mousedown = false;
+    // e.preventDefault();
+}, false);
+
 canvas.addEventListener('touchmove', function(e) {
-    if (e.touches.length!=1){
+    if (e.touches.length!=1 && (!mousedown)){
         return;
     }
     tapEvent = true;
@@ -185,17 +186,23 @@ canvas.addEventListener('touchmove', function(e) {
 
 canvas.addEventListener('mousedown', function(e) {
     tapEvent = true;
+    mousedown = true;
     tapx = e.offsetX;
     tapy = e.offsetY;
     data = processData(data);
     // e.preventDefault();
 }, false);
 
+canvas.addEventListener('mouseup', function(e) {
+    mousedown = false;
+    // e.preventDefault();
+}, false);
+
+
 canvas.addEventListener('mousemove', function(e) {
-    if (e.buttons!=1){
+    if (e.buttons!=1 && (!mousedown)){
         return;
     }
-    console.log("mousemove")
     tapEvent = true;
     tapx = e.offsetX;
     tapy = e.offsetY;
@@ -203,7 +210,7 @@ canvas.addEventListener('mousemove', function(e) {
     // e.preventDefault();
 }, false);
 
-const TAPRANGE = 20;
+const TAPRANGE = 50;
 
 function getCircleHeights(r){
     var heights = [];
@@ -213,18 +220,41 @@ function getCircleHeights(r){
     return heights;
 }
 
-const TAPHEIGHTS = getCircleHeights(TAPRANGE);
+const WOBBLERANGE = Math.floor(0*TAPRANGE);
+const TAPHEIGHTLIST = [];
+for (var r = TAPRANGE-WOBBLERANGE; r<=TAPRANGE+WOBBLERANGE; r++){
+    TAPHEIGHTLIST.push(getCircleHeights(r))
+}
+const NOISINESS = 0;
+
+function signedSqrt(x){
+    if (x<0){
+        return -Math.sqrt(-x);
+    }
+    else{
+        return Math.sqrt(x);
+    }
+}
+
+function wobbleFunction(t){
+    return signedSqrt(0.35+Math.sin(t)/1.6)*WOBBLERANGE
+}
 
 function processData(data){
-    if (tapEvent){
+    if (tapEvent || mousedown){
         tapEvent = false;
         let x = Math.ceil(tapx/SCALE);
         let y = Math.ceil(tapy/SCALE);
-        for(var j=-TAPRANGE;j<=TAPRANGE;j++){
-            for(var i=-TAPHEIGHTS[j+TAPRANGE];i<=TAPHEIGHTS[j+TAPRANGE];i++){
+        let r = Math.floor(TAPRANGE+wobbleFunction(t));
+        let tapHeights = TAPHEIGHTLIST[r-TAPRANGE+WOBBLERANGE];
+        for(var j=-r;j<=r;j++){
+            for(var i=-tapHeights[j+r];i<=tapHeights[j+r];i++){
                 var h = (x+i+width) % width;
                 var k = (y+j+height) % height;
-                data[h*4+k*4*width]+=255;
+                redval = data[h*4+k*4*width];
+                if (redval > 60){
+                data[h*4+k*4*width]=0;
+                }
                 data[h*4+k*4*width+2]+=0;
                 data[h*4+k*4*width+1]+=0;
           }
@@ -234,6 +264,7 @@ function processData(data){
 };
 
 var hue = 0;
+var t = 0;
 
 function setHue(elem, hue){
     elem.style.filter = "hue-rotate("+hue+"deg)";
@@ -242,6 +273,8 @@ function setHue(elem, hue){
 }
 
 function animate(){
+    t += 0.1;
+    t %= 2*Math.PI;
     hue += 0;
     hue %= 360;
     setHue(canvas,hue);
@@ -253,6 +286,18 @@ function animate(){
 }
 
 animate()
+
+//fadeins
+var title = document.getElementById("title");
+var subtitle = document.getElementById("subtitle");
+var bio = document.getElementById("bio");
+title.style.opacity = 1;
+setTimeout(function(){
+    subtitle.style.opacity = 1;
+},1000);
+setTimeout(function(){
+    bio.style.opacity = 1;
+},2000);
 
 }
 
