@@ -18159,7 +18159,7 @@ function $f9d83769637380d8$var$main() {
     });
     initial();
     var initPixels = initial.getPixels();
-    data = ctx.getImageData(0, 0, width, height).data;
+    var data = ctx.getImageData(0, 0, width, height).data;
     const rNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
     const gNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
     const bNoise = (0, $3592d94a2bfb4451$export$2e2bcd8739ae039).Perlin.create(Math.random() * 100000).noise;
@@ -18207,6 +18207,14 @@ function $f9d83769637380d8$var$main() {
         data = processData(data);
         e.preventDefault();
     }, false);
+    canvas.addEventListener("touchmove", function(e) {
+        if (e.touches.length != 1) return;
+        tapEvent = true;
+        tapx = e.touches[0].offsetX;
+        tapy = e.touches[0].offsetY;
+        data = processData(data);
+        e.preventDefault();
+    }, false);
     canvas.addEventListener("mousedown", function(e) {
         tapEvent = true;
         tapx = e.offsetX;
@@ -18230,7 +18238,7 @@ function $f9d83769637380d8$var$main() {
         return heights;
     }
     const TAPHEIGHTS = getCircleHeights(TAPRANGE);
-    function processData(data1) {
+    function processData(data) {
         if (tapEvent) {
             tapEvent = false;
             let x = tapx;
@@ -18238,15 +18246,14 @@ function $f9d83769637380d8$var$main() {
             for(var j = -TAPRANGE; j <= TAPRANGE; j++)for(var i = -TAPHEIGHTS[j + TAPRANGE]; i <= TAPHEIGHTS[j + TAPRANGE]; i++){
                 var h = (x + i + width) % width;
                 var k = (y + j + height) % height;
-                data1[h * 4 + k * 4 * width] += 255;
-                data1[h * 4 + k * 4 * width + 2] += 0;
-                data1[h * 4 + k * 4 * width + 1] += 0;
+                data[h * 4 + k * 4 * width] += 255;
+                data[h * 4 + k * 4 * width + 2] += 0;
+                data[h * 4 + k * 4 * width + 1] += 0;
             }
         }
-        return data1;
+        return data;
     }
     function animate() {
-        console.log("animate");
         render(data, width, height);
         data = render.getPixels();
         data = processData(data);
@@ -18258,4 +18265,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.820d0c9c.js.map
+//# sourceMappingURL=index.7563ea2e.js.map
