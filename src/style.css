@@ -1,0 +1,18 @@
+body {
+    background-color: #000;
+    overflow: hidden;
+    position:relative;
+}
+
+body, html{
+    position:fixed;
+}
+
+#canvas{
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    filter: hue-rotate(120deg);
+    -webkit-filter: hue-rotate(0deg);
+}

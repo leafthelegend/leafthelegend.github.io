@@ -6,6 +6,7 @@ import tooloud from 'tooloud';
 function main(){
 
 const gpu = new GPU();
+console.log(gpu);
 
 //set canvas width and height to document
 
@@ -15,8 +16,10 @@ const canvas = document.getElementById('canvas');
 
 const ctx = canvas.getContext('2d');
 
-canvas.width = document.body.clientWidth;
-canvas.height = document.body.clientHeight;
+const SCALE = 2;
+
+canvas.width = Math.ceil(document.body.clientWidth/SCALE);
+canvas.height = Math.ceil(document.body.clientHeight/SCALE);
 
 var width = canvas.width;
 var height = canvas.height;
@@ -106,8 +109,7 @@ initial();
 var initPixels = initial.getPixels();
 
 
-
-data = ctx.getImageData(0,0,width,height).data;
+var data = ctx.getImageData(0,0,width,height).data;
 
 const rNoise = tooloud.Perlin.create(Math.random()*100000).noise;
 const gNoise = tooloud.Perlin.create(Math.random()*100000).noise;
@@ -153,7 +155,7 @@ for (let i = 0; i < width; i++) {
 render(data,width,height)
 ctx.drawImage(render.canvas,0,0);
 
-ctx.filter = "saturate(1)"
+// ctx.filter = "hue-rotate(120deg) brightness(2)"
 
 var tapEvent = false;
 var tapx = 0;
@@ -161,10 +163,24 @@ var tapy = 0;
 
 canvas.addEventListener('touchstart', function(e) {
     tapEvent = true;
-    tapx = e.touches[0].offsetX;
-    tapy = e.touches[0].offsetY;
+    console.log(e);
+    let bcr = e.target.getBoundingClientRect();
+    tapx = e.targetTouches[0].clientX - bcr.x;
+    tapy = e.targetTouches[0].clientY - bcr.y;
+    console.log(tapx,tapy);
+    // e.preventDefault();
+}, false);
+
+canvas.addEventListener('touchmove', function(e) {
+    if (e.touches.length!=1){
+        return;
+    }
+    tapEvent = true;
+    let bcr = e.target.getBoundingClientRect();
+    tapx = e.targetTouches[0].clientX - bcr.x;
+    tapy = e.targetTouches[0].clientY - bcr.y;
     data = processData(data);
-    e.preventDefault();
+    // e.preventDefault();
 }, false);
 
 canvas.addEventListener('mousedown', function(e) {
@@ -172,7 +188,7 @@ canvas.addEventListener('mousedown', function(e) {
     tapx = e.offsetX;
     tapy = e.offsetY;
     data = processData(data);
-    e.preventDefault();
+    // e.preventDefault();
 }, false);
 
 canvas.addEventListener('mousemove', function(e) {
@@ -184,7 +200,7 @@ canvas.addEventListener('mousemove', function(e) {
     tapx = e.offsetX;
     tapy = e.offsetY;
     data = processData(data);
-    e.preventDefault();
+    // e.preventDefault();
 }, false);
 
 const TAPRANGE = 20;
@@ -202,8 +218,8 @@ const TAPHEIGHTS = getCircleHeights(TAPRANGE);
 function processData(data){
     if (tapEvent){
         tapEvent = false;
-        let x = tapx;
-        let y = tapy;
+        let x = Math.ceil(tapx/SCALE);
+        let y = Math.ceil(tapy/SCALE);
         for(var j=-TAPRANGE;j<=TAPRANGE;j++){
             for(var i=-TAPHEIGHTS[j+TAPRANGE];i<=TAPHEIGHTS[j+TAPRANGE];i++){
                 var h = (x+i+width) % width;
@@ -217,8 +233,18 @@ function processData(data){
     return data;
 };
 
+var hue = 0;
+
+function setHue(elem, hue){
+    elem.style.filter = "hue-rotate("+hue+"deg)";
+    //webkit
+    elem.style.webkitFilter = "hue-rotate("+hue+"deg)";
+}
+
 function animate(){
-    console.log("animate");
+    hue += 0;
+    hue %= 360;
+    setHue(canvas,hue);
     render(data,width,height);
     data = render.getPixels();
     data = processData(data);

@@ -80,3 +80,31 @@ function cells(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, re
     return [redstatus+redchange,greenstatus+greenchange, bluestatus+bluechange];
     return [redstatus,greenstatus, bluestatus];
 }
+
+function ink(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2){
+    const RANGE = 3;
+    var redavg=redsum/((2*RANGE+1)**2);
+    var greenavg=greensum/((2*RANGE+1)**2);
+    var blueavg=bluesum/((2*RANGE+1)**2);
+    const RANGE2 = 5;
+    var redavg2=redsum2/((2*RANGE2+1)**2);
+    var greenavg2=greensum2/((2*RANGE2+1)**2);
+    var blueavg2=bluesum2/((2*RANGE2+1)**2);
+    var redchange = 0;
+    var greenchange = 0;
+    var bluechange = 0;
+
+    if( redavg >= 0.1 
+        &&  redavg <= 0.2 ) { redchange = 0.1; }
+        if( redavg >= 0.3 
+        &&  redavg <= 0.4 ) { redchange = -0.1; }
+        if( redavg2 >= 0.1 
+        &&  redavg2 <= 0.2 ) { redchange = -0.1; }
+        if( redavg2 >= 0.7 
+        &&  redavg2 <= 0.8 ) { redchange = -0.1; }
+        if( redavg >= 0.330 
+        &&  redavg <= 0.350 ) { redchange = -0.1; }
+
+    return [redstatus+redchange,greenstatus+greenchange, bluestatus+bluechange];
+    return [redstatus,greenstatus, bluestatus];
+}
