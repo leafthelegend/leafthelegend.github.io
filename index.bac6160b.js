@@ -18069,10 +18069,10 @@ function $f9d83769637380d8$var$main() {
     var width = canvas.width;
     var height = canvas.height;
     const initial = gpu.createKernel(function() {
-        var redval1 = Math.trunc(Math.random() * 2);
+        var redval = Math.trunc(Math.random() * 2);
         var blueval = Math.trunc(Math.random() * 2);
         var greenval = Math.trunc(Math.random() * 2);
-        this.color(redval1, greenval, blueval);
+        this.color(redval, greenval, blueval);
     }, {
         useLegacyEncoder: true,
         output: [
@@ -18147,8 +18147,8 @@ function $f9d83769637380d8$var$main() {
         var redstatus = pixels[index] / 255;
         var bluestatus = pixels[index + 2] / 255;
         var greenstatus = pixels[index + 1] / 255;
-        var [redval1, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2);
-        this.color(redval1, greenval, blueval);
+        var [redval, greenval, blueval] = rule(redstatus, bluestatus, greenstatus, redsum, greensum, bluesum, redsum2, greensum2, bluesum2);
+        this.color(redval, greenval, blueval);
     }, {
         useLegacyEncoder: true,
         output: [
@@ -18271,7 +18271,7 @@ function $f9d83769637380d8$var$main() {
             for(var j = -r; j <= r; j++)for(var i = -tapHeights[j + r]; i <= tapHeights[j + r]; i++){
                 var h = (x + i + width) % width;
                 var k = (y + j + height) % height;
-                redval = data[h * 4 + k * 4 * width];
+                let redval = data[h * 4 + k * 4 * width];
                 if (redval > 60) data[h * 4 + k * 4 * width] = 0;
                 data[h * 4 + k * 4 * width + 2] += 0;
                 data[h * 4 + k * 4 * width + 1] += 0;
@@ -18314,4 +18314,4 @@ function $f9d83769637380d8$var$main() {
 $f9d83769637380d8$var$main();
 
 
-//# sourceMappingURL=index.dcac1581.js.map
+//# sourceMappingURL=index.bac6160b.js.map
